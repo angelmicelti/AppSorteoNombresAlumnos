@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteo de Alumnos</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Aplicación para realizar sorteos aleatorios de alumnos">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sorteo Alumnos">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="icons/icon-72x72.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f3f4f6;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Animación para el nombre ganador */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .winner-animation {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .highlight-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Scrollbar personalizado */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #c7c7c7;
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Install Button */
+        .install-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            display: none;
+        }
+
+        .install-btn:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Botón de instalación PWA -->
+    <button id="installBtn" class="install-btn">
+        📱 Instalar App
+    </button>
+
+    <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Panel Izquierdo: Entrada de Datos -->
+        <div class="glass-panel shadow-2xl rounded-3xl p-8 flex flex-col h-[500px]">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-3 bg-indigo-100 rounded-xl text-indigo-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Lista de Alumnos</h1>
+            </div>
+
+            <div class="flex-grow flex flex-col relative">
+                <label for="namesInput" class="text-sm font-semibold text-gray-500 mb-2">Introduce un nombre por línea:</label>
+                <textarea 
+                    id="namesInput" 
+                    class="w-full flex-grow p-4 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:ring focus:ring-indigo-200 transition-all resize-none text-gray-700 bg-white leading-relaxed"
+                    placeholder="Juan Pérez&#10;María García&#10;Carlos López&#10;Ana Martínez..."
+                ></textarea>
+                
+                <div class="absolute bottom-4 right-4 text-xs text-gray-400 bg-white px-2 py-1 rounded shadow-sm border">
+                    <span id="countDisplay">0</span> alumnos
+                </div>
+            </div>
+
+            <div class="mt-4 flex gap-3">
+                <button onclick="clearList()" class="px-4 py-2 text-sm text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors font-medium">
+                    Borrar Todo
+                </button>
+                <div class="flex-grow"></div>
+                <label class="flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600">
+                    <input type="checkbox" id="removeWinner" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                    Quitar ganador al salir
+                </label>
+            </div>
+        </div>
+
+        <!-- Panel Derecho: Sorteo y Resultado -->
+        <div class="glass-panel shadow-2xl rounded-3xl p-8 flex flex-col items-center justify-center relative overflow-hidden h-[500px]">
+            
+            <!-- Decoración de fondo -->
+            <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 -z-10"></div>
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-200 rounded-full blur-3xl opacity-50"></div>
+            <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-200 rounded-full blur-3xl opacity-50"></div>
+
+            <!-- Estado Inicial -->
+            <div id="initialState" class="text-center">
+                <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">¿Quién será el elegido?</h2>
+                <p class="text-gray-500 mb-8">Añade nombres a la lista y pulsa el botón.</p>
+            </div>
+
+            <!-- Área de Visualización del Nombre (Ruleta/Ganador) -->
+            <div id="displayArea" class="hidden flex-col items-center justify-center w-full z-10">
+                <div class="text-sm font-semibold text-indigo-500 uppercase tracking-widest mb-4" id="statusText">Sorteando...</div>
+                <div id="nameDisplay" class="text-4xl md:text-5xl font-extrabold text-center text-gray-800 break-words w-full px-4 leading-tight min-h-[120px] flex items-center justify-center">
+                    ---
+                </div>
+            </div>
+
+            <!-- Botón de Acción -->
+            <button 
+                id="drawBtn"
+                onclick="startDraw()"
+                class="mt-8 group relative px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 w-full md:w-auto overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <span class="relative z-10 flex items-center justify-center gap-2">
+                    <span>¡Realizar Sorteo!</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </span>
+                <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            </button>
+
+            <!-- Mensaje de error/aviso -->
+            <div id="messageBox" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-100 text-red-600 px-4 py-2 rounded-full text-sm font-medium opacity-0 transition-opacity duration-300 pointer-events-none shadow-sm">
+                ¡La lista está vacía!
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas para Confeti -->
+    <canvas id="confettiCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-50"></canvas>
+
+    <script>
+        // Elementos del DOM
+        const input = document.getElementById('namesInput');
+        const countDisplay = document.getElementById('countDisplay');
+        const nameDisplay = document.getElementById('nameDisplay');
+        const initialState = document.getElementById('initialState');
+        const displayArea = document.getElementById('displayArea');
+        const drawBtn = document.getElementById('drawBtn');
+        const statusText = document.getElementById('statusText');
+        const messageBox = document.getElementById('messageBox');
+        const removeWinnerCheckbox = document.getElementById('removeWinner');
+        const installBtn = document.getElementById('installBtn');
+
+        let isDrawing = false;
+        let animationInterval;
+
+        // PWA Variables
+        let deferredPrompt;
+
+        // Actualizar contador al escribir
+        input.addEventListener('input', () => {
+            const names = getNames();
+            countDisplay.innerText = names.length;
+        });
+
+        // Obtener array de nombres limpios
+        function getNames() {
+            return input.value.split('\n')
+                .map(n => n.trim())
+                .filter(n => n !== '');
+        }
+
+        // Mostrar mensaje temporal
+        function showMessage(msg, type = 'error') {
+            messageBox.innerText = msg;
+            messageBox.className = `absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium opacity-100 transition-opacity duration-300 pointer-events-none shadow-sm ${type === 'error' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`;
+            
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-100');
+                messageBox.classList.add('opacity-0');
+            }, 3000);
+        }
+
+        function clearList() {
+            if(confirm('¿Estás seguro de que quieres borrar toda la lista?')) {
+                input.value = '';
+                countDisplay.innerText = '0';
+                resetView();
+            }
+        }
+
+        function resetView() {
+            initialState.classList.remove('hidden');
+            displayArea.classList.add('hidden');
+            displayArea.classList.remove('flex');
+        }
+
+        function startDraw() {
+            if (isDrawing) return;
+
+            const names = getNames();
+            
+            if (names.length === 0) {
+                showMessage("¡Por favor añade nombres primero!");
+                input.focus();
+                return;
+            }
+            if (names.length === 1) {
+                showMessage("¡Añade al menos dos nombres para sortear!");
+                return;
+            }
+
+            // Preparar UI
+            isDrawing = true;
+            drawBtn.disabled = true;
+            initialState.classList.add('hidden');
+            displayArea.classList.remove('hidden');
+            displayArea.classList.add('flex');
+            statusText.innerText = "Sorteando...";
+            statusText.className = "text-sm font-semibold text-indigo-500 uppercase tracking-widest mb-4 animate-pulse";
+            nameDisplay.classList.remove('winner-animation', 'highlight-text');
+            nameDisplay.classList.add('text-gray-400');
+
+            // Lógica de animación (Ruleta)
+            let counter = 0;
+            const totalDuration = 2500;
+            const intervalTime = 80;
+
+            animationInterval = setInterval(() => {
+                const randomName = names[Math.floor(Math.random() * names.length)];
+                nameDisplay.innerText = randomName;
+                counter += intervalTime;
+            }, intervalTime);
+
+            // Detener y mostrar ganador
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                finishDraw(names);
+            }, totalDuration);
+        }
+
+        function finishDraw(currentNames) {
+            // Seleccionar ganador real
+            const winnerIndex = Math.floor(Math.random() * currentNames.length);
+            const winnerName = currentNames[winnerIndex];
+
+            // UI del Ganador
+            nameDisplay.innerText = winnerName;
+            nameDisplay.classList.remove('text-gray-400');
+            nameDisplay.classList.add('winner-animation', 'highlight-text');
+            statusText.innerText = "¡Tenemos Ganador!";
+            statusText.className = "text-sm font-bold text-green-500 uppercase tracking-widest mb-4";
+            
+            // Efectos
+            fireConfetti();
+
+            // Gestionar checkbox de eliminar
+            if (removeWinnerCheckbox.checked) {
+                const newNames = [...currentNames];
+                newNames.splice(winnerIndex, 1);
+                input.value = newNames.join('\n');
+                countDisplay.innerText = newNames.length;
+                showMessage("Ganador eliminado de la lista", "success");
+            }
+
+            // Resetear estado del botón
+            isDrawing = false;
+            drawBtn.disabled = false;
+        }
+
+        // --- Confeti ---
+        function fireConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 150;
+            const colors = ['#6366f1', '#a855f7', '#ec4899', '#14b8a6', '#f59e0b'];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15 - 5,
+                    life: Math.random() * 100 + 100,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4,
+                    gravity: 0.2
+                });
+            }
+
+            function update() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let activeParticles = 0;
+
+                particles.forEach(p => {
+                    if (p.life > 0) {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += p.gravity;
+                        p.life--;
+                        p.vx *= 0.96;
+                        
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                        activeParticles++;
+                    }
+                });
+
+                if (activeParticles > 0) {
+                    requestAnimationFrame(update);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            update();
+        }
+
+        // Ajustar canvas al redimensionar
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('confettiCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // --- PWA Functionality ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                installBtn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt = null;
+            showMessage('¡Aplicación instalada!', 'success');
+        });
+
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado con éxito:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
