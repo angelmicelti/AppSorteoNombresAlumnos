@@ -1,6 +1,6 @@
 {
-  "name": "Organizador Aleatorio",
-  "short_name": "Sorteo",
+  "name": "Sorteos Aleatorios",
+  "short_name": "Sorteos Aleatorios",
   "description": "Aplicación para realizar sorteos aleatorios de nombres. Ordena alfabéticamente y elimina ganadores automáticamente.",
   "start_url": "/",
   "display": "standalone",
