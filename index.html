@@ -402,7 +402,7 @@
                 <i class="fa-solid fa-dice fa-3x position-absolute" style="top: -10px; left: -10px; transform: rotate(12deg);"></i>
                 <i class="fa-solid fa-list-ol fa-3x position-absolute" style="bottom: -10px; right: -10px; transform: rotate(-12deg);"></i>
             </div>
-            <h1 class="h2 fw-bold position-relative"><i class="fa-solid fa-shuffle me-2"></i>Generador de Sorteos Aleatorios</h1>
+            <h1 class="h2 fw-bold position-relative"><i class="fa-solid fa-shuffle me-2"></i>Generador Aleatorio de Sorteos</h1>
             <p class="mb-0 opacity-75 position-relative">Introduce nombres y genera un orden al azar</p>
             <div class="position-absolute top-0 end-0 mt-2 me-2">
                 <span id="auth-status" class="badge bg-dark bg-opacity-50 px-3 py-2 fw-normal">Modo Local</span>
@@ -850,7 +850,7 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            return `${year}-${month}-${day} ${hours}-${minutes}-${seconds}`;
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
         }
 
         // Función para mostrar el indicador de última actualización
@@ -1578,7 +1578,7 @@
                 }
                 
                 const content = JSON.stringify(names, null, 2);
-                const timestamp = new Date().toLocaleString('es-ES');
+                const timestamp = getTimestamp();
                 
                 if (shouldOverwrite && existingGistId) {
                     // Sobrescribir gist existente
@@ -1600,14 +1600,14 @@
                 
             } catch (e) { 
                 console.error(e); 
-                showNotification(e.message, 'error'); 
+                showNotification('Error en el guardado: ' + e.message, 'error'); 
             }
         }
 
-        // Función para crear nuevo gist con nombre personalizado
+        // Función para crear nuevo gist con nombre personalizado - CORREGIDA
         async function createNewGistWithName() {
             const gistNameInput = document.getElementById('new-gist-name-input');
-            const gistName = gistNameInput.value.trim();
+            let gistName = gistNameInput.value.trim();
             
             if (!gistName) {
                 showNotification('Por favor, introduce un nombre para la copia.', 'warning');
@@ -1615,23 +1615,63 @@
                 return;
             }
             
+            // Limpiar el nombre para evitar problemas con GitHub
+            // Remover caracteres especiales que puedan causar problemas
+            gistName = gistName.replace(/[^\w\sáéíóúÁÉÍÓÚñÑüÜ.,;:()\[\]{}¡!¿?\-_]/g, '');
+            
+            // Asegurarse de que el nombre no esté vacío después de la limpieza
+            if (!gistName.trim()) {
+                showNotification('El nombre contiene caracteres no válidos. Por favor, usa solo letras, números y espacios.', 'warning');
+                return;
+            }
+            
+            // Limitar la longitud del nombre
+            if (gistName.length > 100) {
+                gistName = gistName.substring(0, 100);
+                showNotification('El nombre se ha truncado a 100 caracteres.', 'info');
+            }
+            
             try {
                 showNotification('Creando nueva copia...', 'info');
                 const content = JSON.stringify(names, null, 2);
                 
+                // Crear un objeto seguro para la petición
                 const body = { 
                     description: gistName, 
                     public: false, 
-                    files: { [GIST_FILENAME]: { content: content } } 
+                    files: { 
+                        [GIST_FILENAME]: { 
+                            content: content 
+                        } 
+                    } 
                 };
                 
+                // Usar fetch con manejo de errores mejorado
                 const resp = await fetch('https://api.github.com/gists', { 
                     method: 'POST', 
-                    headers: {'Authorization': `token ${githubToken}`}, 
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/vnd.github.v3+json'
+                    }, 
                     body: JSON.stringify(body) 
                 });
                 
-                if(!resp.ok) throw new Error(`Error al guardar: ${resp.status}`);
+                if(!resp.ok) {
+                    // Intentar obtener más información del error
+                    let errorMsg = `Error ${resp.status}: ${resp.statusText}`;
+                    try {
+                        const errorData = await resp.json();
+                        if (errorData.message) {
+                            errorMsg = errorData.message;
+                        }
+                    } catch (parseError) {
+                        // Si no podemos parsear la respuesta, usar el mensaje por defecto
+                    }
+                    throw new Error(errorMsg);
+                }
+                
+                const result = await resp.json();
                 
                 // Limpiar input y cerrar modal
                 gistNameInput.value = '';
@@ -1639,9 +1679,21 @@
                 
                 showNotification('¡Nueva copia creada en GitHub!', 'success');
                 saveLastUpdate('github');
+                
+                // AGREGAR EL NUEVO GIST A LA LISTA ACTUAL Y ACTUALIZAR LA UI
+                currentGists.push(result);
+                // Ordenar por fecha más reciente primero
+                currentGists.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                
+                // Si el modal de listas está abierto, actualizar la lista
+                const githubListModal = document.getElementById('modal-github-list');
+                if (!githubListModal.classList.contains('hidden')) {
+                    renderGistList(currentGists);
+                }
+                
             } catch (e) { 
-                console.error(e); 
-                showNotification(e.message, 'error'); 
+                console.error('Error al crear gist:', e); 
+                showNotification('Error al crear la copia: ' + e.message, 'error'); 
             }
         }
 
@@ -1732,7 +1784,7 @@
                     try {
                         showNotification('Sobrescribiendo copia...', 'info');
                         const content = JSON.stringify(names, null, 2);
-                        const timestamp = new Date().toLocaleString('es-ES');
+                        const timestamp = getTimestamp();
                         
                         const body = { 
                             description: `${GIST_DESC} - ${timestamp} (Sobrescrito)`, 
@@ -1748,9 +1800,22 @@
                         if(!resp.ok) throw new Error(`Error al sobrescribir: ${resp.status}`);
                         showNotification('¡Copia sobrescrita en GitHub!', 'success');
                         saveLastUpdate('github');
+                        
+                        // Actualizar el gist en currentGists si existe
+                        const gistIndex = currentGists.findIndex(g => g.id === selectedGistId);
+                        if (gistIndex !== -1) {
+                            currentGists[gistIndex].description = `${GIST_DESC} - ${timestamp} (Sobrescrito)`;
+                            currentGists[gistIndex].updated_at = new Date().toISOString();
+                            
+                            // Si el modal de listas está abierto, actualizar la lista
+                            const githubListModal = document.getElementById('modal-github-list');
+                            if (!githubListModal.classList.contains('hidden')) {
+                                renderGistList(currentGists);
+                            }
+                        }
                     } catch (e) { 
                         console.error(e); 
-                        showNotification(e.message, 'error'); 
+                        showNotification('Error al sobrescribir: ' + e.message, 'error'); 
                     }
                 };
                 
@@ -1910,13 +1975,21 @@
             if (displayEl) displayEl.style.display = 'block';
         }
 
-        // Guardar nuevo nombre para gist
+        // Guardar nuevo nombre para gist - CORREGIDA
         async function saveGistName(gistId) {
             const input = document.getElementById(`gist-edit-input-${gistId}`);
-            const newName = input.value.trim();
+            let newName = input.value.trim();
             
             if (!newName) {
                 showNotification('El nombre no puede estar vacío', 'warning');
+                return;
+            }
+            
+            // Limpiar el nombre para evitar problemas con GitHub
+            newName = newName.replace(/[^\w\sáéíóúÁÉÍÓÚñÑüÜ.,;:()\[\]{}¡!¿?\-_]/g, '');
+            
+            if (!newName.trim()) {
+                showNotification('El nombre contiene caracteres no válidos. Por favor, usa solo letras, números y espacios.', 'warning');
                 return;
             }
             
@@ -1945,12 +2018,22 @@
                     method: 'PATCH',
                     headers: {
                         'Authorization': `token ${githubToken}`,
+                        'Content-Type': 'application/json',
                         'Accept': 'application/vnd.github.v3+json'
                     },
                     body: JSON.stringify(body)
                 });
                 
-                if(!updateResp.ok) throw new Error('Error al actualizar el nombre');
+                if(!updateResp.ok) {
+                    let errorMsg = `Error ${updateResp.status}: ${updateResp.statusText}`;
+                    try {
+                        const errorData = await updateResp.json();
+                        if (errorData.message) {
+                            errorMsg = errorData.message;
+                        }
+                    } catch (parseError) {}
+                    throw new Error(errorMsg);
+                }
                 
                 // Actualizar la UI
                 const displayEl = document.querySelector(`#gist-item-${gistId} .gist-name-display`);
@@ -1965,11 +2048,12 @@
                 const gistIndex = currentGists.findIndex(g => g.id === gistId);
                 if (gistIndex !== -1) {
                     currentGists[gistIndex].description = newName;
+                    currentGists[gistIndex].updated_at = new Date().toISOString();
                 }
                 
                 showNotification('Nombre actualizado correctamente', 'success');
             } catch (error) {
-                console.error(error);
+                console.error('Error al actualizar nombre:', error);
                 showNotification('Error al actualizar el nombre: ' + error.message, 'error');
             }
         }
