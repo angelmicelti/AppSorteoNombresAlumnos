@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#4e54c8">
-    <meta name="description" content="Aplicación para realizar sorteos aleatorios de nombres. Ordena alfabéticamente y elimina ganadores automáticamente.">
-    <meta name="keywords" content="sorteo, aleatorio, nombres, random, organizador">
+    <meta name="description" content="Aplicación para realizar sorteos aleatorios de nombres con almacenamiento seguro en GitHub Gists.">
+    <meta name="keywords" content="sorteo, aleatorio, nombres, random, organizador, GitHub, Gists, privado">
     <meta name="author" content="Sorteo App">
     
     <!-- PWA Configuration -->
@@ -39,6 +39,7 @@
             --accent-color: #ffc107;
             --success-color: #198754;
             --danger-color: #dc3545;
+            --github-color: #24292e;
         }
 
         body {
@@ -180,69 +181,182 @@
             60% {transform: translateY(-5px);}
         }
 
-        /* Modal de instalación */
-        .install-modal .modal-content {
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .install-modal-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        /* Estilos GitHub */
+        .github-btn {
+            background-color: var(--github-color);
+            border-color: var(--github-color);
             color: white;
         }
-
-        .install-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .install-step {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            border-radius: 10px;
-            background: #f8f9fa;
-        }
-
-        .install-step-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary-color);
+        
+        .github-btn:hover {
+            background-color: #000;
+            border-color: #000;
             color: white;
+        }
+        
+        .github-badge {
+            background-color: var(--github-color);
+            color: white;
+        }
+        
+        .list-item-github {
+            border-left: 4px solid var(--github-color);
+        }
+        
+        .token-input-container {
+            position: relative;
+        }
+        
+        .token-preview {
+            font-family: monospace;
+            letter-spacing: 1px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.9em;
+        }
+        
+        /* Modal de listas GitHub */
+        .github-list-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .github-list-item:hover {
+            background-color: rgba(36, 41, 46, 0.05);
+            transform: translateX(5px);
+        }
+        
+        .github-list-item.selected {
+            background-color: rgba(36, 41, 46, 0.1);
+            border-left: 4px solid var(--github-color);
+        }
+        
+        /* Spinner de carga */
+        .spinner-container {
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            align-items: center;
+            min-height: 200px;
         }
-
-        /* Offline indicator */
-        .offline-indicator {
+        
+        /* Badge de estado de conexión */
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        .status-badge.online {
+            background-color: rgba(25, 135, 84, 0.15);
+            color: #198754;
+            border: 1px solid rgba(25, 135, 84, 0.3);
+        }
+        
+        .status-badge.offline {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        /* Estilos para los modales de GitHub (como en el Gestor de Asuntos Propios) */
+        .modal-gist-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .modal-gist-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: #4e54c8;
+        }
+        
+        .delete-gist-btn {
+            opacity: 0.5;
+            transition: all 0.2s;
+        }
+        
+        .delete-gist-btn:hover {
+            opacity: 1;
+            color: #dc3545 !important;
+        }
+        
+        .deleting {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Estilo para el indicador de última actualización */
+        .last-update-indicator {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: var(--danger-color);
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            text-align: center;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            animation: fadeInUp 0.5s ease-out;
+            max-width: 300px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .last-update-indicator.fade-out {
+            animation: fadeOutDown 0.5s ease-out forwards;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+        }
+
+        /* Estilos para la edición de nombres de copias */
+        .gist-name-edit {
+            display: none;
+            margin-top: 10px;
             padding: 10px;
-            z-index: 2000;
-            transform: translateY(-100%);
-            transition: transform 0.3s ease;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #4e54c8;
         }
-
-        .offline-indicator.show {
-            transform: translateY(0);
+        
+        .gist-name-display {
+            cursor: pointer;
         }
-
-        /* Touch feedback */
-        .btn:active, button:active {
-            transform: scale(0.95);
-            transition: transform 0.1s;
+        
+        .gist-name-display:hover {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 2px 4px;
         }
-
+        
+        .edit-in-progress {
+            opacity: 0.6;
+        }
+        
         /* Ajustes para móviles */
         @media (max-width: 768px) {
             .glass-effect {
@@ -258,17 +372,29 @@
             .btn {
                 padding: 10px 15px;
             }
+            
+            .modal-dialog {
+                margin: 10px;
+            }
+            
+            .status-badge {
+                font-size: 0.65rem;
+                padding: 2px 6px;
+            }
         }
     </style>
 </head>
 <body class="d-flex align-items-center justify-content-center p-3">
 
-    <!-- Indicador de modo offline -->
-    <div id="offlineIndicator" class="offline-indicator">
-        <i class="fa-solid fa-wifi-slash me-2"></i> Estás trabajando sin conexión
+    <!-- Indicador de última actualización -->
+    <div id="last-update-indicator" class="last-update-indicator hidden">
+        <div class="d-flex align-items-center gap-1">
+            <i class="fa-solid fa-clock" style="width: 12px; height: 12px;"></i>
+            <span id="last-update-text"></span>
+        </div>
     </div>
 
-    <div class="glass-effect w-100 rounded-4 overflow-hidden" style="max-width: 600px;">
+    <div class="glass-effect w-100 rounded-4 overflow-hidden" style="max-width: 700px;">
         
         <!-- Encabezado -->
         <div class="header-bg p-4 text-center text-white position-relative">
@@ -276,34 +402,37 @@
                 <i class="fa-solid fa-dice fa-3x position-absolute" style="top: -10px; left: -10px; transform: rotate(12deg);"></i>
                 <i class="fa-solid fa-list-ol fa-3x position-absolute" style="bottom: -10px; right: -10px; transform: rotate(-12deg);"></i>
             </div>
-            <h1 class="h2 fw-bold position-relative"><i class="fa-solid fa-shuffle me-2"></i>Organizador Aleatorio</h1>
+            <h1 class="h2 fw-bold position-relative"><i class="fa-solid fa-shuffle me-2"></i>Generador de Sorteos Aleatorios</h1>
             <p class="mb-0 opacity-75 position-relative">Introduce nombres y genera un orden al azar</p>
             <div class="position-absolute top-0 end-0 mt-2 me-2">
-                <span id="appStatus" class="badge bg-success bg-opacity-75">
-                    <i class="fa-solid fa-circle me-1" style="font-size: 0.6rem;"></i> Online
-                </span>
+                <span id="auth-status" class="badge bg-dark bg-opacity-50 px-3 py-2 fw-normal">Modo Local</span>
             </div>
         </div>
 
         <!-- Cuerpo de la App -->
         <div class="p-4">
             
-            <!-- Barra de Herramientas (Importar / Exportar) -->
+            <!-- Barra de Herramientas (Importar / Exportar / GitHub) -->
             <div class="mb-4 p-3 bg-light rounded-3 border">
                 <div class="row align-items-center">
                     <div class="col-md-6 mb-2 mb-md-0">
                         <!-- Botón Importar -->
-                        <div>
+                        <div class="d-flex flex-wrap gap-2">
                             <input type="file" id="fileInput" class="d-none" accept=".xlsx, .xls, .json, .txt, .csv">
                             <button onclick="document.getElementById('fileInput').click()" 
                                 class="btn btn-outline-primary btn-sm">
                                 <i class="fa-solid fa-file-arrow-up me-1"></i> Importar
                             </button>
+                            
+                            <!-- Botón Configurar GitHub -->
+                            <button class="btn btn-outline-dark btn-sm" onclick="showGitHubConfig()">
+                                <i class="fa-brands fa-github me-1"></i> GitHub
+                            </button>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <!-- Botones Exportar -->
-                        <div class="d-flex align-items-center justify-content-end">
+                        <!-- Botones Exportar y Guardar -->
+                        <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
                             <span class="text-muted small fw-bold me-2">Guardar:</span>
                             <div class="btn-group" role="group">
                                 <button onclick="exportList('txt')" 
@@ -315,6 +444,11 @@
                                     .json
                                 </button>
                             </div>
+                            
+                            <!-- Botón Guardar en GitHub -->
+                            <button id="saveToGitHubBtn" class="btn github-btn btn-sm d-none" onclick="saveGitHub()">
+                                <i class="fa-brands fa-github me-1"></i> Guardar Nube
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -361,9 +495,15 @@
                         <h3 class="h6 fw-bold text-uppercase text-secondary">
                             <i class="fa-solid fa-sort-alpha-down me-1"></i>Participantes (<span id="count">0</span>)
                         </h3>
-                        <button onclick="clearList()" id="clearBtn" class="btn btn-link text-danger p-0 d-none">
-                            <i class="fa-solid fa-trash me-1"></i>Borrar todo
-                        </button>
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Botón Cargar desde GitHub -->
+                            <button id="loadFromGitHubBtn" class="btn btn-outline-dark btn-sm d-none" onclick="loadGitHub()">
+                                <i class="fa-brands fa-github me-1"></i> Cargar Nube
+                            </button>
+                            <button onclick="clearList()" id="clearBtn" class="btn btn-link text-danger p-0 d-none">
+                                <i class="fa-solid fa-trash me-1"></i>Borrar todo
+                            </button>
+                        </div>
                     </div>
                     
                     <ul id="nameList" class="list-group custom-scrollbar">
@@ -409,7 +549,7 @@
 
         <!-- Footer -->
         <div class="bg-light p-3 text-center text-muted small border-top">
-            <span id="versionInfo">v1.0.0 • Sorteo 100% aleatorio</span> • <i class="fa-solid fa-lock text-muted ms-1"></i> Local & Seguro
+            <span id="versionInfo">v1.1.1 • Sorteo 100% aleatorio</span> • <i class="fa-solid fa-lock text-muted ms-1"></i> Local & Seguro
         </div>
     </div>
 
@@ -419,11 +559,192 @@
         <i class="fa-solid fa-download"></i>
     </button>
 
+    <!-- Modal de configuración de GitHub (SIMPLIFICADO como en el Gestor de Asuntos Propios) -->
+    <div class="modal fade" id="githubConfigModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="fa-brands fa-github me-2"></i> Configuración GitHub
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small">
+                        <i class="fa-solid fa-info-circle me-2"></i>
+                        Para guardar en la nube, introduce tu <strong>Personal Access Token (Classic)</strong> de GitHub.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="githubToken" class="form-label fw-bold">Token de GitHub</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="githubToken" 
+                                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleTokenVisibility()">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <a href="https://github.com/settings/tokens" target="_blank" class="text-decoration-none">
+                                <i class="fa-solid fa-external-link me-1"></i> Generar token en GitHub
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Opción para cargar token desde archivo .txt -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">O carga el token desde un archivo .txt:</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="tokenFileInput" class="btn btn-outline-secondary btn-sm cursor-pointer mb-0">
+                                <i class="fa-solid fa-upload me-1"></i> Seleccionar archivo
+                            </label>
+                            <input type="file" id="tokenFileInput" accept=".txt" class="d-none">
+                            <span id="token-file-name" class="small text-muted flex-grow-1 truncate" style="max-width: 200px;">Ningún archivo seleccionado</span>
+                        </div>
+                    </div>
+                    
+                    <div id="github-msg" class="alert alert-secondary mt-3 mb-0">
+                        Token no configurado.
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-dark" onclick="saveGithubToken()">
+                            <i class="fa-solid fa-save me-2"></i> Validar y Guardar
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="clearGitHubConfig()">
+                            <i class="fa-solid fa-trash me-2"></i> Eliminar configuración
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA LISTAR COPIA DE SEGURIDAD DE GITHUB (Como en el Gestor de Asuntos Propios) -->
+    <div id="modal-github-list" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-3 hidden">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 500px; max-height: 80vh;">
+            <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center rounded-top">
+                <h3 class="h6 fw-bold mb-0 d-flex align-items-center gap-2"><i class="fa-brands fa-github"></i> Copias de seguridad</h3>
+                <button onclick="closeModal('modal-github-list')" class="btn btn-sm text-white p-0"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-3 bg-light border-bottom small text-secondary">Selecciona la versión que deseas restaurar:</div>
+            <div class="p-0 overflow-auto flex-grow-1">
+                <ul id="github-file-list" class="list-group list-group-flush"></ul>
+            </div>
+            <div class="p-3 bg-light rounded-bottom d-flex justify-content-end">
+                <button onclick="closeModal('modal-github-list')" class="btn btn-secondary btn-sm">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Opciones de guardado en GitHub -->
+    <div id="save-options-modal" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-4 hidden">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 500px; max-height: 80vh;">
+            <div class="bg-primary text-white p-3 d-flex justify-content-between align-items-center rounded-top">
+                <h3 class="h6 fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-brands fa-github"></i> Opciones de guardado
+                </h3>
+                <button onclick="closeModal('save-options-modal')" class="btn btn-sm text-white p-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <p class="mb-4">Se han encontrado <span id="found-backups-count">0</span> copias de seguridad existentes. ¿Qué deseas hacer?</p>
+                
+                <div class="vstack gap-3">
+                    <button onclick="handleSaveOption('overwrite', 'save-options-modal')" 
+                            class="btn btn-primary d-flex align-items-center gap-2 justify-content-start text-start">
+                        <i class="fa-solid fa-save" style="width:20px"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Sobrescribir última copia</div>
+                            <small class="d-block">Actualizará la copia más reciente</small>
+                        </div>
+                    </button>
+                    
+                    <button onclick="handleSaveOption('overwrite_selected', 'save-options-modal')" 
+                            class="btn btn-warning d-flex align-items-center gap-2 justify-content-start text-start">
+                        <i class="fa-solid fa-pen-to-square" style="width:20px"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Seleccionar copia para sobrescribir</div>
+                            <small class="d-block">Elegirás qué copia actualizar</small>
+                        </div>
+                    </button>
+                    
+                    <button onclick="handleSaveOption('new', 'save-options-modal')" 
+                            class="btn btn-success d-flex align-items-center gap-2 justify-content-start text-start">
+                        <i class="fa-solid fa-plus-circle" style="width:20px"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">Crear nueva copia</div>
+                            <small class="d-block">Generarás una copia nueva (seguirán existiendo las anteriores)</small>
+                        </div>
+                    </button>
+                    
+                    <button onclick="handleSaveOption('cancel', 'save-options-modal')" 
+                            class="btn btn-outline-secondary mt-3">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Selección de gist para sobrescribir -->
+    <div id="gist-selection-modal" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-4 hidden">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 600px; max-height: 80vh;">
+            <div class="bg-warning text-dark p-3 d-flex justify-content-between align-items-center rounded-top">
+                <h3 class="h6 fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Seleccionar copia para sobrescribir
+                </h3>
+                <button onclick="closeModal('gist-selection-modal')" class="btn btn-sm text-dark p-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-3 bg-light border-bottom small text-secondary">
+                Selecciona la copia que deseas sobrescribir (se perderán los datos antiguos):
+            </div>
+            <div class="p-0 overflow-auto flex-grow-1">
+                <div class="list-group list-group-flush" id="gist-selection-list"></div>
+            </div>
+            <div class="p-3 bg-light rounded-bottom d-flex justify-content-between align-items-center">
+                <button onclick="closeModal('gist-selection-modal')" class="btn btn-secondary btn-sm">
+                    Cancelar
+                </button>
+                <div class="small text-muted"><span id="gist-count">0</span> copias encontradas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Nombre para nueva copia -->
+    <div id="new-gist-name-modal" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-5 hidden">
+        <div class="bg-white rounded shadow-lg w-100 d-flex flex-column" style="max-width: 500px; max-height: 80vh;">
+            <div class="bg-success text-white p-3 d-flex justify-content-between align-items-center rounded-top">
+                <h3 class="h6 fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> Nombre para la nueva copia
+                </h3>
+                <button onclick="closeModal('new-gist-name-modal')" class="btn btn-sm text-white p-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <p class="mb-3">Introduce un nombre descriptivo para la nueva copia de seguridad:</p>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="new-gist-name-input" 
+                           placeholder="Ej: Lista de alumnos 2024" autocomplete="off">
+                    <div class="form-text">Este nombre te ayudará a identificar la copia más adelante.</div>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button onclick="closeModal('new-gist-name-modal')" class="btn btn-secondary btn-sm">Cancelar</button>
+                    <button onclick="createNewGistWithName()" class="btn btn-success btn-sm">Crear copia</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de instrucciones de instalación -->
     <div class="modal fade install-modal" id="installModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header install-modal-header">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
                         <i class="fa-solid fa-mobile-screen me-2"></i> Instalar Aplicación
                     </h5>
@@ -487,6 +808,13 @@
 
         // Estado global
         let names = [];
+        let githubToken = localStorage.getItem('githubToken') || '';
+        let currentGists = []; // Almacenar los gists actuales
+        let selectedGistId = null;
+
+        // Constantes para Gists
+        const GIST_FILENAME = 'sorteo_nombres_data.json';
+        const GIST_DESC = 'Sorteo Aleatorio - Lista de Nombres';
 
         // Referencias al DOM
         const nameInput = document.getElementById('nameInput');
@@ -500,15 +828,87 @@
         const fileInput = document.getElementById('fileInput');
         const duplicateAlert = document.getElementById('duplicateAlert');
         const eliminarGanadorCheck = document.getElementById('eliminarGanadorCheck');
-        const offlineIndicator = document.getElementById('offlineIndicator');
-        const appStatus = document.getElementById('appStatus');
+        const authStatus = document.getElementById('auth-status');
         const installButton = document.getElementById('installButton');
         const deferredInstallBtn = document.getElementById('deferredInstallBtn');
         const versionInfo = document.getElementById('versionInfo');
+        const saveToGitHubBtn = document.getElementById('saveToGitHubBtn');
+        const loadFromGitHubBtn = document.getElementById('loadFromGitHubBtn');
+        const tokenFileInput = document.getElementById('tokenFileInput');
 
         // Variables para PWA
         let deferredPrompt;
-        const APP_VERSION = '1.0.1';
+        const APP_VERSION = '1.1.1';
+
+        // Función para obtener timestamp
+        function getTimestamp() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}-${minutes}-${seconds}`;
+        }
+
+        // Función para mostrar el indicador de última actualización
+        function showLastUpdateIndicator() {
+            const lastUpdate = localStorage.getItem('lastUpdate');
+            if (!lastUpdate) return;
+            
+            try {
+                const updateData = JSON.parse(lastUpdate);
+                const date = new Date(updateData.timestamp);
+                const formattedDate = date.toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const sourceText = updateData.source === 'github' ? 'GitHub' : 'Local';
+                const indicator = document.getElementById('last-update-indicator');
+                const textElement = document.getElementById('last-update-text');
+                
+                textElement.textContent = `Última actualización: ${formattedDate} (${sourceText})`;
+                indicator.classList.remove('hidden');
+                
+                // Auto-ocultar después de 10 segundos
+                setTimeout(() => {
+                    indicator.classList.add('fade-out');
+                    setTimeout(() => {
+                        indicator.classList.add('hidden');
+                        indicator.classList.remove('fade-out');
+                    }, 500);
+                }, 10000);
+                
+                // Cerrar al hacer clic
+                indicator.onclick = () => {
+                    indicator.classList.add('fade-out');
+                    setTimeout(() => {
+                        indicator.classList.add('hidden');
+                        indicator.classList.remove('fade-out');
+                    }, 500);
+                };
+            } catch (e) {
+                console.error('Error al procesar lastUpdate:', e);
+            }
+        }
+        
+        // Función para guardar la información de última actualización
+        function saveLastUpdate(source) {
+            const updateData = {
+                timestamp: new Date().toISOString(),
+                source: source // 'local' o 'github'
+            };
+            localStorage.setItem('lastUpdate', JSON.stringify(updateData));
+            
+            // Mostrar el indicador después de guardar
+            showLastUpdateIndicator();
+        }
 
         // Inicializar versión
         versionInfo.textContent = `v${APP_VERSION} • Sorteo 100% aleatorio`;
@@ -529,6 +929,24 @@
 
         // Escuchar cambio en el input de archivo
         fileInput.addEventListener('change', handleFileUpload);
+        
+        // Escuchar cambio en el input de archivo de token
+        tokenFileInput.addEventListener('change', handleTokenFileUpload);
+
+        // Función para manejar la subida de archivo de token
+        function handleTokenFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const token = e.target.result.trim();
+                document.getElementById('githubToken').value = token;
+                document.getElementById('token-file-name').textContent = file.name;
+                showNotification('Token cargado desde archivo', 'info');
+            };
+            reader.readAsText(file);
+        }
 
         // Función para verificar si un nombre ya existe (insensible a mayúsculas/minúsculas)
         function isDuplicate(name) {
@@ -611,6 +1029,18 @@
                     eliminarGanadorCheck.checked = savedEliminar === 'true';
                 }
                 
+                // Cargar token de GitHub si existe
+                if (githubToken) {
+                    updateAuthStatus(true);
+                    
+                    // Actualizar UI del token
+                    document.getElementById('githubToken').value = githubToken;
+                    updateGitHubMsg('Token configurado correctamente.', 'success');
+                } else {
+                    updateAuthStatus(false);
+                    updateGitHubMsg('Token no configurado.', 'secondary');
+                }
+                
                 // Si hay una versión anterior, podemos hacer migraciones aquí
                 if (savedVersion && savedVersion !== APP_VERSION) {
                     console.log(`Actualizando de versión ${savedVersion} a ${APP_VERSION}`);
@@ -661,7 +1091,7 @@
             showNotification(`Lista exportada correctamente (${names.length} nombres)`, 'success');
         }
 
-        // Función para manejar la subida de archivos
+        // Función para manejar la subida de archivos (MODIFICADA: ahora reemplaza la lista actual)
         function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -712,23 +1142,40 @@
                         .map(n => String(n).trim()) // Convertir a string y quitar espacios
                         .filter(n => n.length > 0); // Quitar vacíos
 
-                    // Filtrar duplicados antes de agregar
-                    const uniqueImportedNames = importedNames.filter(name => !isDuplicate(name));
-                    
-                    // Si hay duplicados, informar al usuario
-                    if (uniqueImportedNames.length < importedNames.length) {
-                        const duplicateCount = importedNames.length - uniqueImportedNames.length;
-                        showNotification(
-                            `Se importaron ${uniqueImportedNames.length} nombres. Se omitieron ${duplicateCount} duplicados.`,
-                            'info'
-                        );
+                    if (importedNames.length === 0) {
+                        showNotification('No se encontraron nombres válidos en el archivo.', 'warning');
+                        return;
                     }
 
-                    if (uniqueImportedNames.length > 0) {
-                        addNamesToList(uniqueImportedNames);
-                        showNotification(`¡Se importaron ${uniqueImportedNames.length} nombres correctamente!`, 'success');
+                    // REEMPLAZAR la lista actual con los nombres importados
+                    names = [...importedNames];
+                    
+                    // Filtrar duplicados
+                    const uniqueNames = [];
+                    names.forEach(name => {
+                        if (!uniqueNames.some(n => n.toLowerCase().trim() === name.toLowerCase().trim())) {
+                            uniqueNames.push(name);
+                        }
+                    });
+                    
+                    names = uniqueNames;
+                    
+                    // Ordenar alfabéticamente
+                    sortNamesAlphabetically();
+                    
+                    // Actualizar UI
+                    renderList();
+                    saveToStorage();
+                    
+                    // Mostrar notificación
+                    const duplicateCount = importedNames.length - uniqueNames.length;
+                    if (duplicateCount > 0) {
+                        showNotification(
+                            `Se importaron ${uniqueNames.length} nombres (${duplicateCount} duplicados omitidos).`,
+                            'info'
+                        );
                     } else {
-                        showNotification('No se encontraron nombres válidos en el archivo.', 'warning');
+                        showNotification(`¡Se importaron ${uniqueNames.length} nombres correctamente!`, 'success');
                     }
 
                 } catch (error) {
@@ -945,6 +1392,707 @@
             }, 5000);
         }
 
+        // --- Funciones para GitHub Gists (Como en el Gestor de Asuntos Propios) ---
+
+        // Actualizar estado de autenticación
+        function updateAuthStatus(isConnected) {
+            const el = document.getElementById('auth-status');
+            const msgEl = document.getElementById('github-msg');
+            if(isConnected) {
+                el.innerText = `GitHub Conectado`; 
+                el.classList.replace('bg-dark', 'bg-success');
+                msgEl.innerText = 'Token válido. Conectado a GitHub.'; 
+                msgEl.classList.remove('alert-secondary', 'alert-danger'); 
+                msgEl.classList.add('alert-success');
+                
+                // Mostrar botones de GitHub
+                saveToGitHubBtn.classList.remove('d-none');
+                loadFromGitHubBtn.classList.remove('d-none');
+            } else {
+                el.innerText = 'Modo Local'; 
+                el.classList.replace('bg-success', 'bg-dark');
+                msgEl.innerText = 'Token no configurado.'; 
+                msgEl.classList.remove('alert-success', 'alert-danger'); 
+                msgEl.classList.add('alert-secondary');
+                
+                // Ocultar botones de GitHub
+                saveToGitHubBtn.classList.add('d-none');
+                loadFromGitHubBtn.classList.add('d-none');
+            }
+        }
+
+        // Actualizar mensaje de GitHub
+        function updateGitHubMsg(message, type = 'secondary') {
+            const msgEl = document.getElementById('github-msg');
+            msgEl.innerHTML = message;
+            msgEl.className = `alert alert-${type}`;
+        }
+
+        // Alternar visibilidad del token
+        function toggleTokenVisibility() {
+            const tokenInput = document.getElementById('githubToken');
+            const eyeIcon = tokenInput.parentElement.querySelector('.fa-eye');
+            
+            if (tokenInput.type === 'password') {
+                tokenInput.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                tokenInput.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Guardar token de GitHub
+        async function saveGithubToken() {
+            const t = document.getElementById('githubToken').value.trim();
+            if(!t) return showNotification("Introduce un token válido", 'warning');
+            
+            showNotification('Validando token...', 'info');
+            
+            try {
+                const res = await fetch('https://api.github.com/user', { 
+                    headers: { 
+                        'Authorization': `token ${t}`, 
+                        'Accept': 'application/vnd.github.v3+json' 
+                    }
+                });
+                
+                if(!res.ok) throw new Error("Token inválido");
+                
+                const user = await res.json();
+                githubToken = t; 
+                localStorage.setItem('githubToken', t);
+                
+                updateAuthStatus(true);
+                updateGitHubMsg(`Token válido. Conectado como ${user.login}`, 'success');
+                showNotification(`Token válido. Conectado como ${user.login}`, 'success');
+                
+                // Cerrar modal si está abierto
+                const modal = bootstrap.Modal.getInstance(document.getElementById('githubConfigModal'));
+                if (modal) modal.hide();
+            } catch(e) { 
+                console.error(e); 
+                updateAuthStatus(false); 
+                updateGitHubMsg("Token inválido. Verifica tu token.", 'danger');
+                showNotification("Error: El token no funciona", 'error');
+            }
+        }
+
+        // Limpiar configuración de GitHub
+        function clearGitHubConfig() {
+            if (confirm('¿Estás seguro de que quieres eliminar la configuración de GitHub?')) {
+                localStorage.removeItem('githubToken');
+                githubToken = '';
+                
+                // Limpiar formulario
+                document.getElementById('githubToken').value = '';
+                document.getElementById('token-file-name').textContent = 'Ningún archivo seleccionado';
+                
+                updateAuthStatus(false);
+                updateGitHubMsg('Token no configurado.', 'secondary');
+                
+                showNotification('Configuración de GitHub eliminada.', 'info');
+                
+                // Cerrar modal si está abierto
+                const modal = bootstrap.Modal.getInstance(document.getElementById('githubConfigModal'));
+                if (modal) modal.hide();
+            }
+        }
+
+        // Mostrar configuración de GitHub
+        function showGitHubConfig() {
+            const modal = new bootstrap.Modal(document.getElementById('githubConfigModal'));
+            modal.show();
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Mostrar modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        // Guardar en GitHub (con opciones como en el Gestor de Asuntos Propios)
+        async function saveGitHub() {
+            if(!githubToken) {
+                showNotification("Primero configura tu Token.", 'warning');
+                showGitHubConfig();
+                return;
+            }
+            
+            if (names.length === 0) {
+                showNotification('La lista está vacía. Añade nombres antes de guardar.', 'warning');
+                return;
+            }
+            
+            try {
+                showNotification('Conectando con GitHub...', 'info');
+                
+                // Buscar gists existentes
+                const listResp = await fetch('https://api.github.com/gists', { 
+                    headers: {'Authorization': `token ${githubToken}`} 
+                });
+                
+                if(!listResp.ok) throw new Error(`Error al conectar: ${listResp.status}`);
+                
+                const gists = await listResp.json();
+                const relevantGists = gists.filter(g => 
+                    (g.files && g.files[GIST_FILENAME]) || 
+                    (g.description && g.description.includes('Sorteo Aleatorio'))
+                );
+                
+                let shouldOverwrite = false;
+                let existingGistId = null;
+                
+                if (relevantGists.length > 0) {
+                    // Actualizar contador en el modal
+                    document.getElementById('found-backups-count').textContent = relevantGists.length;
+                    
+                    // Preguntar al usuario qué hacer
+                    const choice = await showSaveOptionsModal(relevantGists);
+                    
+                    if (choice === 'overwrite') {
+                        // Ordenar por fecha más reciente
+                        relevantGists.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                        existingGistId = relevantGists[0].id;
+                        shouldOverwrite = true;
+                    } else if (choice === 'overwrite_selected') {
+                        // El usuario seleccionará uno específico
+                        await showGistSelectionModal(relevantGists, 'overwrite');
+                        return; // La función modal manejará el proceso
+                    } else if (choice === 'new') {
+                        // Mostrar modal para nombre de nueva copia
+                        showModal('new-gist-name-modal');
+                        return;
+                    } else {
+                        // Usuario canceló
+                        return;
+                    }
+                } else {
+                    // No hay copias existentes, mostrar modal para nombre de nueva copia
+                    showModal('new-gist-name-modal');
+                    return;
+                }
+                
+                const content = JSON.stringify(names, null, 2);
+                const timestamp = new Date().toLocaleString('es-ES');
+                
+                if (shouldOverwrite && existingGistId) {
+                    // Sobrescribir gist existente
+                    const body = { 
+                        description: `${GIST_DESC} - ${timestamp} (Sobrescrito)`, 
+                        files: { [GIST_FILENAME]: { content: content } } 
+                    };
+                    
+                    const resp = await fetch(`https://api.github.com/gists/${existingGistId}`, { 
+                        method: 'PATCH', 
+                        headers: {'Authorization': `token ${githubToken}`}, 
+                        body: JSON.stringify(body) 
+                    });
+                    
+                    if(!resp.ok) throw new Error(`Error al sobrescribir: ${resp.status}`);
+                    showNotification('¡Datos sobrescritos en GitHub!', 'success');
+                    saveLastUpdate('github');
+                }
+                
+            } catch (e) { 
+                console.error(e); 
+                showNotification(e.message, 'error'); 
+            }
+        }
+
+        // Función para crear nuevo gist con nombre personalizado
+        async function createNewGistWithName() {
+            const gistNameInput = document.getElementById('new-gist-name-input');
+            const gistName = gistNameInput.value.trim();
+            
+            if (!gistName) {
+                showNotification('Por favor, introduce un nombre para la copia.', 'warning');
+                gistNameInput.focus();
+                return;
+            }
+            
+            try {
+                showNotification('Creando nueva copia...', 'info');
+                const content = JSON.stringify(names, null, 2);
+                
+                const body = { 
+                    description: gistName, 
+                    public: false, 
+                    files: { [GIST_FILENAME]: { content: content } } 
+                };
+                
+                const resp = await fetch('https://api.github.com/gists', { 
+                    method: 'POST', 
+                    headers: {'Authorization': `token ${githubToken}`}, 
+                    body: JSON.stringify(body) 
+                });
+                
+                if(!resp.ok) throw new Error(`Error al guardar: ${resp.status}`);
+                
+                // Limpiar input y cerrar modal
+                gistNameInput.value = '';
+                closeModal('new-gist-name-modal');
+                
+                showNotification('¡Nueva copia creada en GitHub!', 'success');
+                saveLastUpdate('github');
+            } catch (e) { 
+                console.error(e); 
+                showNotification(e.message, 'error'); 
+            }
+        }
+
+        // Modal para opciones de guardado
+        function showSaveOptionsModal(gists) {
+            return new Promise((resolve) => {
+                const modalId = 'save-options-modal';
+                const modal = document.getElementById(modalId);
+                
+                // Actualizar contador
+                document.getElementById('found-backups-count').textContent = gists.length;
+                
+                // Configurar resolución
+                window.handleSaveOption = function(option, modalId) {
+                    document.getElementById(modalId).classList.add('hidden');
+                    resolve(option);
+                };
+                
+                // Mostrar modal
+                modal.classList.remove('hidden');
+            });
+        }
+
+        // Modal para seleccionar gist a sobrescribir
+        function showGistSelectionModal(gists, action) {
+            return new Promise((resolve) => {
+                const modalId = 'gist-selection-modal';
+                const modal = document.getElementById(modalId);
+                
+                // Ordenar por fecha (más reciente primero)
+                gists.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+                
+                // Actualizar contador
+                document.getElementById('gist-count').textContent = gists.length;
+                
+                // Llenar la lista
+                const listContainer = document.getElementById('gist-selection-list');
+                listContainer.innerHTML = '';
+                
+                gists.forEach((gist, index) => {
+                    const date = new Date(gist.updated_at).toLocaleString('es-ES');
+                    const desc = gist.description || '(Sin descripción)';
+                    const isMostRecent = index === 0;
+                    
+                    const item = document.createElement('div');
+                    item.className = `list-group-item list-group-item-action p-3 ${isMostRecent ? 'border-start border-3 border-warning' : ''}`;
+                    item.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input me-3" type="radio" name="selectedGist" id="gist-${gist.id}" value="${gist.id}">
+                            <label class="flex-grow-1" for="gist-${gist.id}" style="cursor: pointer;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1 me-3">
+                                        <div class="fw-bold text-dark">${desc}</div>
+                                        <div class="small text-secondary mt-1 d-flex align-items-center gap-2">
+                                            <i class="fa-solid fa-clock" style="width:12px"></i> ${date}
+                                            ${isMostRecent ? '<span class="badge bg-warning text-dark">Más reciente</span>' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    `;
+                    listContainer.appendChild(item);
+                    
+                    // Configurar evento de clic
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.matches('input[type="radio"]')) {
+                            const radio = item.querySelector('input[type="radio"]');
+                            radio.checked = true;
+                            selectedGistId = gist.id;
+                        }
+                    });
+                });
+                
+                // Añadir botón de confirmar
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'btn btn-warning w-100 rounded-0 border-0';
+                confirmBtn.innerHTML = '<i class="fa-solid fa-save me-2"></i> Sobrescribir copia seleccionada';
+                confirmBtn.onclick = async () => {
+                    if (!selectedGistId) {
+                        showNotification('Por favor, selecciona una copia para sobrescribir', 'warning');
+                        return;
+                    }
+                    
+                    modal.classList.add('hidden');
+                    
+                    // Proceder a sobrescribir
+                    try {
+                        showNotification('Sobrescribiendo copia...', 'info');
+                        const content = JSON.stringify(names, null, 2);
+                        const timestamp = new Date().toLocaleString('es-ES');
+                        
+                        const body = { 
+                            description: `${GIST_DESC} - ${timestamp} (Sobrescrito)`, 
+                            files: { [GIST_FILENAME]: { content: content } } 
+                        };
+                        
+                        const resp = await fetch(`https://api.github.com/gists/${selectedGistId}`, { 
+                            method: 'PATCH', 
+                            headers: {'Authorization': `token ${githubToken}`}, 
+                            body: JSON.stringify(body) 
+                        });
+                        
+                        if(!resp.ok) throw new Error(`Error al sobrescribir: ${resp.status}`);
+                        showNotification('¡Copia sobrescrita en GitHub!', 'success');
+                        saveLastUpdate('github');
+                    } catch (e) { 
+                        console.error(e); 
+                        showNotification(e.message, 'error'); 
+                    }
+                };
+                
+                listContainer.appendChild(confirmBtn);
+                
+                // Mostrar modal
+                modal.classList.remove('hidden');
+            });
+        }
+
+        // Cargar desde GitHub
+        async function loadGitHub() {
+            if(!githubToken) {
+                showNotification("Configura tu Token primero.", 'warning');
+                showGitHubConfig();
+                return;
+            }
+            
+            try {
+                showNotification('Consultando GitHub...', 'info');
+                const listResp = await fetch('https://api.github.com/gists', { 
+                    headers: {'Authorization': `token ${githubToken}`} 
+                });
+                
+                if(!listResp.ok) throw new Error('Error al conectar con GitHub.');
+                
+                const gists = await listResp.json();
+                const relevantGists = gists.filter(g => 
+                    (g.files && g.files[GIST_FILENAME]) || 
+                    (g.description && g.description.includes('Sorteo Aleatorio'))
+                );
+                
+                if (relevantGists.length === 0) throw new Error('No se encontraron copias.');
+                
+                currentGists = relevantGists;
+                renderGistList(relevantGists);
+                showModal('modal-github-list');
+            } catch (e) { 
+                console.error(e); 
+                showNotification(e.message, 'error'); 
+            }
+        }
+
+        // Renderizar lista de Gists con funcionalidad de edición
+        function renderGistList(gists) {
+            const container = document.getElementById('github-file-list'); 
+            container.innerHTML = '';
+            
+            if (gists.length === 0) {
+                container.innerHTML = `
+                    <li class="list-group-item text-center text-muted py-4">
+                        <i class="fa-solid fa-folder-xmark me-2"></i>
+                        <div>No se encontraron copias de seguridad</div>
+                    </li>
+                `;
+                return;
+            }
+            
+            // Ordenar por fecha (más reciente primero)
+            gists.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+            
+            gists.forEach((gist, index) => {
+                const date = new Date(gist.updated_at).toLocaleString('es-ES');
+                const desc = gist.description || '(Sin descripción)';
+                const gistId = gist.id;
+                const isMostRecent = index === 0;
+                
+                const li = document.createElement('li');
+                li.id = `gist-item-${gistId}`;
+                li.className = 'list-group-item modal-gist-item p-3';
+                li.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1 me-3" style="cursor: pointer;" onclick="loadSpecificGist('${gistId}')">
+                            <div class="fw-bold text-dark gist-name-display" onclick="event.stopPropagation(); toggleGistNameEdit('${gistId}', this)">
+                                ${desc}
+                            </div>
+                            <div class="small text-secondary mt-1 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-clock" style="width:12px"></i> ${date} 
+                                ${isMostRecent ? '<span class="badge bg-warning text-dark">Más reciente</span>' : ''}
+                                <span class="badge bg-light text-secondary border">ID: ${gistId.substr(0,7)}...</span>
+                            </div>
+                            <div class="gist-name-edit mt-2" id="gist-edit-${gistId}">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" id="gist-edit-input-${gistId}" value="${desc}" placeholder="Nuevo nombre para la copia">
+                                    <button class="btn btn-outline-primary" type="button" onclick="saveGistName('${gistId}')">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="cancelGistNameEdit('${gistId}')">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted d-block mt-1">Presiona Enter para guardar, Esc para cancelar</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button onclick="loadSpecificGist('${gistId}')" 
+                                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-download" style="width:14px"></i>
+                                <span class="d-none d-md-inline">Restaurar</span>
+                            </button>
+                            <button onclick="toggleGistNameEdit('${gistId}')" 
+                                    class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-pen" style="width:14px"></i>
+                                <span class="d-none d-md-inline">Editar</span>
+                            </button>
+                            <button onclick="deleteGist('${gistId}', ${index})" 
+                                    class="btn btn-sm btn-outline-danger delete-gist-btn d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-trash" style="width:14px"></i>
+                                <span class="d-none d-md-inline">Eliminar</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        // Mostrar/ocultar editor de nombre de gist
+        function toggleGistNameEdit(gistId, displayElement = null) {
+            const editDiv = document.getElementById(`gist-edit-${gistId}`);
+            const input = document.getElementById(`gist-edit-input-${gistId}`);
+            
+            if (editDiv.style.display === 'block') {
+                // Si ya está visible, cancelar edición
+                cancelGistNameEdit(gistId);
+            } else {
+                // Mostrar editor
+                editDiv.style.display = 'block';
+                if (displayElement) {
+                    displayElement.style.display = 'none';
+                } else {
+                    // Buscar el elemento de display
+                    const displayEl = document.querySelector(`#gist-item-${gistId} .gist-name-display`);
+                    if (displayEl) displayEl.style.display = 'none';
+                }
+                
+                input.focus();
+                input.select();
+                
+                // Configurar eventos de teclado
+                input.onkeydown = function(e) {
+                    if (e.key === 'Enter') {
+                        saveGistName(gistId);
+                    } else if (e.key === 'Escape') {
+                        cancelGistNameEdit(gistId);
+                    }
+                };
+            }
+        }
+
+        // Cancelar edición de nombre de gist
+        function cancelGistNameEdit(gistId) {
+            const editDiv = document.getElementById(`gist-edit-${gistId}`);
+            const displayEl = document.querySelector(`#gist-item-${gistId} .gist-name-display`);
+            
+            editDiv.style.display = 'none';
+            if (displayEl) displayEl.style.display = 'block';
+        }
+
+        // Guardar nuevo nombre para gist
+        async function saveGistName(gistId) {
+            const input = document.getElementById(`gist-edit-input-${gistId}`);
+            const newName = input.value.trim();
+            
+            if (!newName) {
+                showNotification('El nombre no puede estar vacío', 'warning');
+                return;
+            }
+            
+            if(!githubToken) {
+                showNotification('Error: Token no configurado', 'error');
+                return;
+            }
+            
+            try {
+                // Obtener el gist actual
+                const gistResp = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    headers: { 'Authorization': `token ${githubToken}` }
+                });
+                
+                if(!gistResp.ok) throw new Error('Error al obtener el gist');
+                
+                const gist = await gistResp.json();
+                
+                // Actualizar solo la descripción
+                const body = {
+                    description: newName,
+                    files: gist.files // Mantener los mismos archivos
+                };
+                
+                const updateResp = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if(!updateResp.ok) throw new Error('Error al actualizar el nombre');
+                
+                // Actualizar la UI
+                const displayEl = document.querySelector(`#gist-item-${gistId} .gist-name-display`);
+                if (displayEl) {
+                    displayEl.textContent = newName;
+                }
+                
+                // Ocultar editor
+                cancelGistNameEdit(gistId);
+                
+                // Actualizar en currentGists
+                const gistIndex = currentGists.findIndex(g => g.id === gistId);
+                if (gistIndex !== -1) {
+                    currentGists[gistIndex].description = newName;
+                }
+                
+                showNotification('Nombre actualizado correctamente', 'success');
+            } catch (error) {
+                console.error(error);
+                showNotification('Error al actualizar el nombre: ' + error.message, 'error');
+            }
+        }
+
+        // Cargar un Gist específico (MODIFICADA: ahora siempre reemplaza la lista)
+        async function loadSpecificGist(gistId) {
+            closeModal('modal-github-list');
+            showNotification('Descargando...', 'info');
+            
+            try {
+                const gistResp = await fetch(`https://api.github.com/gists/${gistId}`, { 
+                    headers: {'Authorization': `token ${githubToken}`} 
+                });
+                
+                if(!gistResp.ok) throw new Error('Error al descargar.');
+                
+                const fullGist = await gistResp.json();
+                const targetFile = fullGist.files[GIST_FILENAME];
+                
+                if (!targetFile) throw new Error(`Archivo ${GIST_FILENAME} no encontrado.`);
+                
+                const data = JSON.parse(targetFile.content);
+                
+                if(Array.isArray(data) && data.length > 0) {
+                    // SIEMPRE REEMPLAZAR la lista actual
+                    names = [...data];
+                    sortNamesAlphabetically();
+                    renderList();
+                    saveToStorage();
+                    showNotification('¡Lista restaurada correctamente!', 'success');
+                    
+                    // Guardar información de última actualización
+                    saveLastUpdate('github');
+                } else {
+                    throw new Error('Formato incorrecto o lista vacía.');
+                }
+            } catch (e) { 
+                console.error(e); 
+                showNotification(e.message, 'error'); 
+            }
+        }
+
+        // Eliminar un Gist
+        async function deleteGist(gistId, index) {
+            // Obtener el elemento DOM correspondiente
+            const gistElement = document.getElementById(`gist-item-${gistId}`);
+            if (!gistElement) return;
+            
+            const gistDescription = currentGists[index]?.description || '(Sin descripción)';
+            
+            if (!confirm(`¿Estás seguro de que quieres eliminar permanentemente esta copia de seguridad?\n\n"${gistDescription}"\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            if(!githubToken) {
+                showNotification('Error: Token no configurado', 'error');
+                return;
+            }
+            
+            // Deshabilitar el elemento mientras se procesa
+            gistElement.classList.add('deleting');
+            const buttons = gistElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // Cambiar el texto del botón de eliminar
+            const deleteBtn = gistElement.querySelector('.delete-gist-btn');
+            if (deleteBtn) {
+                deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Eliminando...';
+            }
+            
+            try {
+                showNotification('Eliminando copia de seguridad...', 'info');
+                
+                const deleteResp = await fetch(`https://api.github.com/gists/${gistId}`, { 
+                    method: 'DELETE', 
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if(!deleteResp.ok) {
+                    if (deleteResp.status === 404) {
+                        throw new Error('La copia de seguridad no existe o ya fue eliminada.');
+                    } else if (deleteResp.status === 403) {
+                        throw new Error('Permiso denegado. Verifica que tu token tenga permisos para eliminar gists.');
+                    } else {
+                        throw new Error(`Error al eliminar: ${deleteResp.status} ${deleteResp.statusText}`);
+                    }
+                }
+                
+                // 1. Eliminar el gist del array currentGists
+                currentGists.splice(index, 1);
+                
+                // 2. Eliminar el elemento del DOM
+                gistElement.remove();
+                
+                // 3. Verificar si quedan elementos en la lista
+                const container = document.getElementById('github-file-list');
+                if (currentGists.length === 0) {
+                    container.innerHTML = `
+                        <li class="list-group-item text-center text-muted py-4">
+                            <i class="fa-solid fa-folder-xmark me-2"></i>
+                            <div>No se encontraron copias de seguridad</div>
+                        </li>
+                    `;
+                }
+                
+                showNotification('¡Copia de seguridad eliminada correctamente!', 'success');
+                
+            } catch (e) {
+                console.error(e);
+                showNotification(`Error: ${e.message}`, 'error');
+                
+                // Restaurar el elemento si hay error
+                gistElement.classList.remove('deleting');
+                buttons.forEach(btn => btn.disabled = false);
+                if (deleteBtn) {
+                    deleteBtn.innerHTML = '<i class="fa-solid fa-trash me-1"></i><span class="d-none d-md-inline"> Eliminar</span>';
+                }
+            }
+        }
+
         // --- Funcionalidades PWA ---
 
         // Mostrar instrucciones de instalación
@@ -974,14 +2122,19 @@
         // Detectar cambios en la conexión
         function updateOnlineStatus() {
             const isOnline = navigator.onLine;
+            const statusElement = document.getElementById('auth-status');
+            
+            if (!githubToken) {
+                return; // Mantener el estado actual (Modo Local)
+            }
+            
             if (isOnline) {
-                offlineIndicator.classList.remove('show');
-                appStatus.innerHTML = '<i class="fa-solid fa-circle me-1" style="font-size: 0.6rem;"></i> Online';
-                appStatus.className = 'badge bg-success bg-opacity-75';
+                statusElement.classList.remove('bg-danger');
+                statusElement.classList.add('bg-success');
             } else {
-                offlineIndicator.classList.add('show');
-                appStatus.innerHTML = '<i class="fa-solid fa-circle me-1" style="font-size: 0.6rem;"></i> Offline';
-                appStatus.className = 'badge bg-danger bg-opacity-75';
+                statusElement.classList.remove('bg-success');
+                statusElement.classList.add('bg-danger');
+                statusElement.innerHTML = '<i class="fa-solid fa-wifi-slash me-1"></i> Sin conexión';
             }
         }
 
@@ -992,16 +2145,6 @@
                     navigator.serviceWorker.register('service-worker.js')
                         .then(registration => {
                             console.log('ServiceWorker registrado con éxito:', registration.scope);
-                            
-                            // Verificar actualizaciones
-                            registration.addEventListener('updatefound', () => {
-                                const newWorker = registration.installing;
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        showNotification('¡Nueva versión disponible! Recarga la página para actualizar.', 'info');
-                                    }
-                                });
-                            });
                         })
                         .catch(error => {
                             console.log('Error al registrar ServiceWorker:', error);
@@ -1014,6 +2157,9 @@
         function initApp() {
             // Cargar datos guardados
             loadFromStorage();
+            
+            // Mostrar indicador de última actualización al iniciar
+            showLastUpdateIndicator();
             
             // Configurar eventos de conexión
             window.addEventListener('online', updateOnlineStatus);
@@ -1050,6 +2196,13 @@
             
             // Guardar automáticamente cuando cambia el checkbox
             eliminarGanadorCheck.addEventListener('change', saveToStorage);
+            
+            // Configurar tecla Enter en el modal de nombre de nueva copia
+            document.getElementById('new-gist-name-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    createNewGistWithName();
+                }
+            });
         }
 
         // Inicializar cuando se carga el DOM
