@@ -1,7 +1,7 @@
 // Nombre de la caché
-const CACHE_NAME = 'sorteo-app-v1.0.2';
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const CACHE_NAME = 'sorteo-app-v1.0.3';
+const STATIC_CACHE = 'static-v2';
+const DYNAMIC_CACHE = 'dynamic-v2';
 
 // Archivos a cachear
 const STATIC_ASSETS = [
