@@ -14,6 +14,9 @@ const STATIC_ASSETS = [
   'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'
+  'https://api.github.com',
+  'https://raw.githubusercontent.com'
+
 ];
 
 // Iconos (ajusta las rutas según tu estructura)
